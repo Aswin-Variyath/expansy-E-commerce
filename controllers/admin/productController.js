@@ -131,17 +131,13 @@ const getAllProducts = async (req, res) => {
         .populate("brand")
         .exec();
 
-       
-
         const count = await Product.countDocuments({
             productName: { $regex: new RegExp(".*" + search + ".*", "i") } 
         });
 
-      
         const category = await Category.find({ isListed: true })
         const brand = await Brand.find({ isBlocked: false })
-
-      
+        
         res.render("products", {
             data: productData,
             currentPage: page,
@@ -149,6 +145,7 @@ const getAllProducts = async (req, res) => {
             category: category,
             brand: brand,
             message:message
+            
         });
 
     } catch (error) {
