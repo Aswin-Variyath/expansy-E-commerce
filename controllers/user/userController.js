@@ -6,6 +6,8 @@ const productSchema = require("../../models/productSchema")
 const Wallet = require("../../models/walletSchema")
 const Transaction = require("../../models/walletTransaction")
 const StatusCode = require("../../constants/statusCode")
+const { Resend } = require("resend");
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const loadHomepage = async (req, res) => {
     try {
@@ -84,37 +86,26 @@ function generateOtp(){
 
 
 
-async function sendVerificationEmail(email,otp,name){
-    try{
-        const transporter = nodemailer.createTransport({
-            host: "smtp.gmail.com",
-            port:587,
-            secure:false,
-            requireTLS: true,
-            auth:{
-                user: process.env.NODEMAILER_EMAIL,
-                pass: process.env.NODEMAILER_PASSWORD
-            }
-        })
+async function sendVerificationEmail(email, otp, name) {
+    try {
+        const info = await resend.emails.send({
+            from: "Expansy <onboarding@resend.dev>",
+            to: email,
+            subject: "Verify your Expansy Account",
+            html: `
+                <div style="font-family: Arial, sans-serif; color:#333;">
+                    <h2>Hello, ${name}</h2>
+                    <p>Your Expansy login verification code:</p>
+                    <h1>${otp}</h1>
+                    <p>This code is valid for 5 minutes.</p>
+                </div>
+            `
+        });
 
-        const info = await transporter.sendMail({
-            from:process.env.NODEMAILER_EMAIL,
-            to:email,
-            subject: "Verify your account",
-            html:`<div style="font-family: Arial, sans-serif; color:rgb(69, 63, 63); ">
-            <h2 style="color: rgb(88, 85, 85);">Hi, ${name}</h2>
-            <p style="color: rgb(88, 85, 85);">Someone tried to log in to your Expansy account.</p>
-            <p style="color: rgb(88, 85, 85);">If this was you, please use the following code to confirm your identity:</p>
-            <h1 style="color:rgb(56, 51, 51);">${otp}</h1>
-            <p style="color: rgb(88, 85, 85);">If you did not make this request, please ignore this email or contact our support team.</p>
-        </div>`
-        })
-
-        return info.accepted.length>0
-
-    }catch(error){
-        console.error("Error sending email",error)
-        return false
+        return true;
+    } catch (error) {
+        console.error("Error sending email:", error);
+        return false;
     }
 }
 
