@@ -66,6 +66,7 @@ const verification = async (req,res)=>{
 const loadsignup = async (req,res)=>{
     try {
         if(!req.session.user){
+            console.log("sdfdfg")
             return res.render("signup")
         }else{
             res.redirect("/")
@@ -86,7 +87,7 @@ function generateOtp(){
 async function sendVerificationEmail(email,otp,name){
     try{
         const transporter = nodemailer.createTransport({
-            service: "gmail",
+            host: "smtp.gmail.com",
             port:587,
             secure:false,
             requireTLS: true,
@@ -121,6 +122,8 @@ const signup = async (req, res) => {
     try {
       const { name, phone, email, password, cpassword, referalcode } = req.body;
       
+
+
       console.log("this is req.body", req.body);
   
       let referredBy = null;
