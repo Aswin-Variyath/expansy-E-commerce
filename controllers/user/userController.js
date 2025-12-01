@@ -9,6 +9,7 @@ const StatusCode = require("../../constants/statusCode")
 const { Resend } = require("resend");
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+
 const loadHomepage = async (req, res) => {
     try {
         const userPass = req.session.passport
@@ -86,27 +87,32 @@ function generateOtp(){
 
 
 
-async function sendVerificationEmail(email, otp, name) {
-    try {
-        const info = await resend.emails.send({
-            from: "Expansy <onboarding@resend.dev>",
-            to: email,
-            subject: "Verify your Expansy Account",
-            html: `
-                <div style="font-family: Arial, sans-serif; color:#333;">
-                    <h2>Hello, ${name}</h2>
-                    <p>Your Expansy login verification code:</p>
-                    <h1>${otp}</h1>
-                    <p>This code is valid for 5 minutes.</p>
-                </div>
-            `
-        });
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.MY_EMAIL,
+    pass: process.env.MY_APP_PASS
+  }
+});
 
-        return true;
-    } catch (error) {
-        console.error("Error sending email:", error);
-        return false;
-    }
+async function sendVerificationEmail(email, otp, name) {
+  try {
+    await transporter.sendMail({
+      from: process.env.MY_EMAIL,   // SAME Gmail as sender
+      to: email,
+      subject: "Verify Your Account",
+      html: `
+        <h2>Hello, ${name}</h2>
+        <p>Your verification code:</p>
+        <h1>${otp}</h1>
+      `
+    });
+
+    return true;
+  } catch (error) {
+    console.error("Email sending error:", error);
+    return false;
+  }
 }
 
 const signup = async (req, res) => {
